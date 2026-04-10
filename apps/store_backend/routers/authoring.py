@@ -74,9 +74,21 @@ async def list_files(app_id: str):
     return {"app_id": app_id, "files": files}
 
 
+def _check_path_traversal(base_dir: Path, app_id: str, file_path: str) -> Path:
+    """Guard against path traversal attacks. Raises 403 if path escapes base dir."""
+    resolved = (base_dir / app_id / file_path).resolve()
+    safe_base = (base_dir / app_id).resolve()
+    if not str(resolved).startswith(str(safe_base)):
+        raise HTTPException(status_code=403, detail="Path traversal detected")
+    return resolved
+
+
 @router.get("/{app_id}/files/{file_path:path}")
 async def read_file(app_id: str, file_path: str):
     """Read a file from the app's draft directory."""
+    _check_path_traversal(DRAFTS_DIR, app_id, file_path)
+    _check_path_traversal(APPS_DIR, app_id, file_path)
+
     draft_path = DRAFTS_DIR / app_id / file_path
     live_path = APPS_DIR / app_id / file_path
 
@@ -85,7 +97,6 @@ async def read_file(app_id: str, file_path: str):
     if not target.exists():
         raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
 
-    # Only read text files
     try:
         content = target.read_text(encoding="utf-8")
     except UnicodeDecodeError:
@@ -97,6 +108,8 @@ async def read_file(app_id: str, file_path: str):
 @router.put("/{app_id}/files/{file_path:path}")
 async def write_file(app_id: str, file_path: str, body: FileWriteRequest):
     """Write a file to the app's draft directory."""
+    _check_path_traversal(DRAFTS_DIR, app_id, file_path)
+
     draft_dir = DRAFTS_DIR / app_id
     draft_dir.mkdir(parents=True, exist_ok=True)
 
