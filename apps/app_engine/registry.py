@@ -40,12 +40,16 @@ class AppRegistry:
         self._on_state_change: list = []
 
     def load(self, entries: list[AppEntry]) -> int:
-        """Load app entries from scanner. Returns count of valid apps loaded."""
+        """Load app entries from scanner. Returns count of valid apps loaded.
+        [#11] Also removes apps that no longer exist on disk."""
+        current_ids = set()
         loaded = 0
         for entry in entries:
             if not entry.is_valid:
                 logger.warning("Skipping invalid app: %s (%s)", entry.app_id, entry.errors)
                 continue
+
+            current_ids.add(entry.app_id)
 
             if entry.app_id in self._apps:
                 existing = self._apps[entry.app_id]
@@ -60,6 +64,12 @@ class AppRegistry:
                 self._apps[entry.app_id] = RegisteredApp(entry=entry)
                 logger.info("Registered app: %s v%s", entry.app_id, entry.version)
             loaded += 1
+
+        # Remove apps that disappeared from disk
+        removed_ids = set(self._apps.keys()) - current_ids
+        for rid in removed_ids:
+            logger.info("Removing deleted app from registry: %s", rid)
+            del self._apps[rid]
 
         return loaded
 

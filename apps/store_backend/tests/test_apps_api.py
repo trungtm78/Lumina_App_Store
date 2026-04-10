@@ -166,10 +166,42 @@ class TestDownloadApp:
 
 class TestChecksum:
     @pytest.mark.asyncio
-    async def test_checksum(self, client: AsyncClient, sample_app):
+    async def test_checksum_no_zip(self, client: AsyncClient, sample_app):
+        """Checksum returns 404 when ZIP doesn't exist on disk."""
         resp = await client.get("/api/apps/test-crm-connector/checksum")
+        assert resp.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_checksum_with_zip(self, client: AsyncClient, db_session, tmp_path):
+        """Checksum returns real SHA256 when ZIP exists."""
+        import hashlib
+        from apps.store_backend.config import settings
+
+        app_entry = App(
+            app_id="checksum-test-app",
+            name="Checksum Test",
+            version="1.0.0",
+            status="approved",
+            systems=["core"],
+            modules=["chat"],
+        )
+        db_session.add(app_entry)
+        await db_session.commit()
+
+        # Create a fake ZIP in LuminaApps
+        from pathlib import Path
+        zip_dir = Path(settings.lumina_apps_dir)
+        zip_dir.mkdir(parents=True, exist_ok=True)
+        zip_path = zip_dir / "checksum-test-app-v1.0.0.zip"
+        zip_path.write_bytes(b"fake zip content")
+
+        resp = await client.get("/api/apps/checksum-test-app/checksum")
         assert resp.status_code == 200
-        assert "sha256" in resp.json()
+        data = resp.json()
+        assert data["sha256"] == hashlib.sha256(b"fake zip content").hexdigest()
+
+        # Cleanup
+        zip_path.unlink(missing_ok=True)
 
     @pytest.mark.asyncio
     async def test_checksum_404(self, client: AsyncClient):

@@ -145,10 +145,6 @@ async def download_app(app_id: str, db: AsyncSession = Depends(get_db)):
             detail={"code": "APP_NOT_APPROVED", "message": "App is not approved for download"},
         )
 
-    # Increment download count
-    app.download_count += 1
-    await db.commit()
-
     from ..config import settings
     lumina_apps_dir = Path(settings.lumina_apps_dir)
     filename = f"{app_id}-v{app.version}.zip"
@@ -158,6 +154,9 @@ async def download_app(app_id: str, db: AsyncSession = Depends(get_db)):
     if cached_zip.is_file():
         zip_bytes = cached_zip.read_bytes()
         checksum = hashlib.sha256(zip_bytes).hexdigest()
+        # [#5] Increment AFTER proving artifact exists
+        app.download_count = App.download_count + 1  # SQL-level increment for concurrency
+        await db.commit()
         return StreamingResponse(
             io.BytesIO(zip_bytes),
             media_type="application/zip",
@@ -208,6 +207,10 @@ async def download_app(app_id: str, db: AsyncSession = Depends(get_db)):
     lumina_apps_dir.mkdir(parents=True, exist_ok=True)
     cached_zip.write_bytes(zip_bytes)
 
+    # [#5] Increment AFTER successful ZIP generation
+    app.download_count = App.download_count + 1
+    await db.commit()
+
     checksum = hashlib.sha256(zip_bytes).hexdigest()
     return StreamingResponse(
         io.BytesIO(zip_bytes),
@@ -231,5 +234,15 @@ async def get_checksum(app_id: str, db: AsyncSession = Depends(get_db)):
             detail={"code": "APP_NOT_FOUND", "message": f"App not found: {app_id}"},
         )
 
-    # TODO: Return actual checksum from MinIO metadata.
-    return {"app_id": app.app_id, "version": app.version, "sha256": "placeholder-checksum"}
+    # [#12] Compute real checksum from cached ZIP
+    from ..config import settings
+    zip_path = Path(settings.lumina_apps_dir) / f"{app_id}-v{app.version}.zip"
+    if zip_path.is_file():
+        checksum = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+    else:
+        checksum = None
+
+    if not checksum:
+        raise HTTPException(status_code=404, detail={"code": "CHECKSUM_NOT_AVAILABLE", "message": "ZIP not found, checksum unavailable"})
+
+    return {"app_id": app.app_id, "version": app.version, "sha256": checksum}

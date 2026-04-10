@@ -236,7 +236,7 @@ export default function AuthoringPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleDeploy}
-              disabled={deploying || validationErrors.length > 0}
+              disabled={deploying || validationErrors.length > 0 || saveStatus === "saving"}
               className="px-4 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {deploying ? "Deploying..." : "Deploy to Live"}

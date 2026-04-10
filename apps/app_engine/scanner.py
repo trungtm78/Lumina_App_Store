@@ -129,6 +129,19 @@ def _scan_single_app(app_dir: Path) -> AppEntry:
             errors=["Permission denied reading config.json"],
         )
 
+    # [#10] Validate config against schema
+    try:
+        import sys
+        schema_path = str(Path(__file__).parent.parent.parent / "packages" / "config-schema")
+        if schema_path not in sys.path:
+            sys.path.insert(0, schema_path)
+        from validator import validate_config
+        result = validate_config(config)
+        if not result.valid:
+            errors.extend(result.errors)
+    except ImportError:
+        pass  # Validator not available in this environment
+
     # Read skill.md if present
     skill_content = None
     skill_path = app_dir / "skill.md"
