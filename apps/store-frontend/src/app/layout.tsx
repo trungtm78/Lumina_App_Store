@@ -32,6 +32,11 @@ export default function RootLayout({
           <a href="/" className="text-xl font-bold text-gray-900">
             Lumina App Store
           </a>
+          <nav className="flex gap-4 ml-8 text-sm">
+            <a href="/" className="text-gray-600 hover:text-gray-900">Marketplace</a>
+            <a href="/authoring" className="text-gray-600 hover:text-gray-900">Authoring</a>
+            <a href="/menu-apps" className="text-gray-600 hover:text-gray-900">Menu Apps</a>
+          </nav>
         </header>
         <main className="flex-1">{children}</main>
       </body>
