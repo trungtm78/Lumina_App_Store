@@ -74,17 +74,42 @@ python -m pytest packages/config-schema/ apps/app_engine/ apps/store_backend/ -v
 cd apps/store-frontend && pnpm build
 ```
 
-## Cấu trúc một App
+## Cấu trúc lưu trữ App
+
+### Trên Marketplace Server (`/LuminaApps/`)
+
+Kho lưu trữ trung tâm chứa tất cả ZIP packages đã approved:
+
+```
+/LuminaApps/
+├── lumina-crm-connector-v1.0.0.zip      ← ZIP package version cụ thể
+├── lumina-crm-connector-latest.zip      ← Luôn trỏ tới version mới nhất
+├── lumina-hr-module-v2.1.0.zip
+├── lumina-hr-module-latest.zip
+└── ...
+```
+
+### Trên Server khách hàng (`/Apps/`)
+
+Sau khi download ZIP từ marketplace, unzip và copy vào `/Apps/`:
 
 ```
 /Apps/{app-name}/
-├── config.json      ← Metadata (bắt buộc)
+├── config.json      ← Metadata và cấu hình (bắt buộc)
 ├── skill.md         ← AI prompt definition (bắt buộc)
 ├── icon.png         ← 256x256 PNG (bắt buộc)
 ├── refs.md          ← Tài liệu bổ sung (tùy chọn)
 └── tools/           ← API configs, handlers (tùy chọn)
     ├── api.json
     └── handler.py
+```
+
+### Flow: Marketplace → Khách hàng
+
+```
+Vendor deploy → ZIP lưu vào /LuminaApps/
+Customer download ZIP → Unzip → Copy vào /Apps/ trên server
+App Engine scan /Apps/ → Activate → skill.md inject vào AI
 ```
 
 ## API Endpoints
