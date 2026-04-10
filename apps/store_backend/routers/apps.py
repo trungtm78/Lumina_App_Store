@@ -1,8 +1,13 @@
 """Public app endpoints: list, detail, download, checksum."""
 
+import io
+import hashlib
+import zipfile
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -144,14 +149,60 @@ async def download_app(app_id: str, db: AsyncSession = Depends(get_db)):
     app.download_count += 1
     await db.commit()
 
-    # TODO: Stream from MinIO when storage service is wired up.
-    # For now, return a placeholder response.
-    return {
-        "app_id": app.app_id,
-        "version": app.version,
-        "download_url": f"/storage/{app.app_id}/{app.version}/package.zip",
-        "message": "MinIO streaming not yet implemented. Use download_url when storage is ready.",
-    }
+    # Find app source folder: check examples/ and Apps/
+    app_dir = None
+    for base in [
+        Path(__file__).parent.parent.parent.parent / "examples",
+        Path(__file__).parent.parent.parent.parent / "Apps",
+    ]:
+        # Match by app_id or folder name
+        candidate = base / app_id
+        if candidate.is_dir():
+            app_dir = candidate
+            break
+        # Try matching without "lumina-" prefix
+        short_id = app_id.replace("lumina-", "")
+        candidate = base / short_id
+        if candidate.is_dir():
+            app_dir = candidate
+            break
+
+    if app_dir is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "APP_FILES_NOT_FOUND", "message": f"App files not found on disk for: {app_id}"},
+        )
+
+    # Generate ZIP in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for file_path in sorted(app_dir.rglob("*")):
+            if file_path.is_file():
+                arcname = f"{app_id}/{file_path.relative_to(app_dir)}"
+                zf.write(file_path, arcname)
+
+        # Add INSTALL.md
+        zf.writestr(f"{app_id}/INSTALL.md", f"# Installation\n\n1. Unzip this file\n2. Copy `{app_id}/` folder to `/Apps/`\n3. Go to Menu Apps and activate\n")
+
+        # Add CHANGELOG.md
+        zf.writestr(f"{app_id}/CHANGELOG.md", f"# Changelog\n\n## [{app.version}] - {datetime.now().strftime('%Y-%m-%d')}\n- Initial release\n")
+
+    zip_buffer.seek(0)
+    zip_bytes = zip_buffer.getvalue()
+
+    # Compute checksum
+    checksum = hashlib.sha256(zip_bytes).hexdigest()
+
+    filename = f"{app_id}-v{app.version}.zip"
+    return StreamingResponse(
+        io.BytesIO(zip_bytes),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(zip_bytes)),
+            "X-Checksum-SHA256": checksum,
+        },
+    )
 
 
 @router.get("/{app_id}/checksum")

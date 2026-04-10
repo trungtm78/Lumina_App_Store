@@ -95,6 +95,7 @@ export default async function AppDetailPage({ params }: PageProps) {
             {app.status === "approved" ? (
               <a
                 href={getDownloadUrl(app.app_id)}
+                download
                 className="block w-full text-center bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
               >
                 Tải xuống ZIP

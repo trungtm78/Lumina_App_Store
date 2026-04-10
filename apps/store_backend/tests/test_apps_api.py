@@ -92,11 +92,25 @@ class TestGetApp:
 
 class TestDownloadApp:
     @pytest.mark.asyncio
-    async def test_download_approved(self, client: AsyncClient, sample_app):
-        resp = await client.get("/api/apps/test-crm-connector/download")
+    async def test_download_approved(self, client: AsyncClient, db_session):
+        """Use lumina-crm-connector which matches examples/crm-connector on disk."""
+        app_entry = App(
+            app_id="lumina-crm-connector",
+            name="CRM Connector",
+            version="1.0.0",
+            status="approved",
+            systems=["core"],
+            modules=["chat"],
+            download_count=10,
+        )
+        db_session.add(app_entry)
+        await db_session.commit()
+
+        resp = await client.get("/api/apps/lumina-crm-connector/download")
         assert resp.status_code == 200
-        data = resp.json()
-        assert data["app_id"] == "test-crm-connector"
+        assert resp.headers["content-type"] == "application/zip"
+        assert "lumina-crm-connector" in resp.headers.get("content-disposition", "")
+        assert len(resp.content) > 0
 
     @pytest.mark.asyncio
     async def test_download_not_approved(self, client: AsyncClient, draft_app):
@@ -109,10 +123,45 @@ class TestDownloadApp:
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_download_increments_count(self, client: AsyncClient, sample_app):
-        await client.get("/api/apps/test-crm-connector/download")
-        resp = await client.get("/api/apps/test-crm-connector")
+    async def test_download_increments_count(self, client: AsyncClient, db_session):
+        app_entry = App(
+            app_id="lumina-crm-connector",
+            name="CRM",
+            version="1.0.0",
+            status="approved",
+            systems=["core"],
+            modules=["chat"],
+            download_count=42,
+        )
+        db_session.add(app_entry)
+        await db_session.commit()
+
+        await client.get("/api/apps/lumina-crm-connector/download")
+        resp = await client.get("/api/apps/lumina-crm-connector")
         assert resp.json()["download_count"] == 43
+
+    @pytest.mark.asyncio
+    async def test_download_zip_contains_files(self, client: AsyncClient, db_session):
+        app_entry = App(
+            app_id="lumina-crm-connector",
+            name="CRM",
+            version="1.0.0",
+            status="approved",
+            systems=["core"],
+            modules=["chat"],
+        )
+        db_session.add(app_entry)
+        await db_session.commit()
+
+        resp = await client.get("/api/apps/lumina-crm-connector/download")
+        assert resp.status_code == 200
+
+        import zipfile, io
+        zf = zipfile.ZipFile(io.BytesIO(resp.content))
+        names = zf.namelist()
+        assert any("config.json" in n for n in names)
+        assert any("skill.md" in n for n in names)
+        assert any("INSTALL.md" in n for n in names)
 
 
 class TestChecksum:
