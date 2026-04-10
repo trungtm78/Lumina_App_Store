@@ -29,10 +29,10 @@ async function AppGrid({ searchParams }: { searchParams: Record<string, string |
       return (
         <div className="text-center py-16">
           <div className="text-gray-400 text-5xl mb-4">📦</div>
-          <h3 className="text-lg font-medium text-gray-600">
+          <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300">
             Không tìm thấy app nào
           </h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
           </p>
         </div>
@@ -60,7 +60,7 @@ async function AppGrid({ searchParams }: { searchParams: Record<string, string |
                 className={`px-3 py-1 rounded text-sm ${
                   p === data.page
                     ? "bg-blue-600 text-white"
-                    : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
+                    : "bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
               >
                 {p}
@@ -69,7 +69,7 @@ async function AppGrid({ searchParams }: { searchParams: Record<string, string |
           </div>
         )}
 
-        <p className="mt-4 text-center text-xs text-gray-400">
+        <p className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
           {data.total} apps
         </p>
       </div>
@@ -78,10 +78,10 @@ async function AppGrid({ searchParams }: { searchParams: Record<string, string |
     return (
       <div className="text-center py-16">
         <div className="text-red-400 text-5xl mb-4">⚠️</div>
-        <h3 className="text-lg font-medium text-gray-600">
+        <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300">
           Không thể kết nối đến server
         </h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Kiểm tra backend đang chạy tại {process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}
         </p>
       </div>

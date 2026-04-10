@@ -48,14 +48,14 @@ export function FilterSidebar() {
     <aside className="w-56 flex-shrink-0 space-y-6">
       {/* System filter */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Hệ thống</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Hệ thống</h3>
         <div className="space-y-1">
           <button
             onClick={() => updateParam("system", "")}
             className={`block w-full text-left px-3 py-1.5 rounded text-sm ${
               !currentSystem
-                ? "bg-blue-50 text-blue-700 font-medium"
-                : "text-gray-600 hover:bg-gray-50"
+                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
             }`}
           >
             Tất cả
@@ -66,8 +66,8 @@ export function FilterSidebar() {
               onClick={() => updateParam("system", s)}
               className={`block w-full text-left px-3 py-1.5 rounded text-sm capitalize ${
                 currentSystem === s
-                  ? "bg-blue-50 text-blue-700 font-medium"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
               }`}
             >
               {s}
@@ -78,14 +78,14 @@ export function FilterSidebar() {
 
       {/* Category filter */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Danh mục</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Danh mục</h3>
         <div className="space-y-1">
           <button
             onClick={() => updateParam("category", "")}
             className={`block w-full text-left px-3 py-1.5 rounded text-sm ${
               !currentCategory
-                ? "bg-blue-50 text-blue-700 font-medium"
-                : "text-gray-600 hover:bg-gray-50"
+                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
             }`}
           >
             Tất cả
@@ -96,8 +96,8 @@ export function FilterSidebar() {
               onClick={() => updateParam("category", c)}
               className={`block w-full text-left px-3 py-1.5 rounded text-sm ${
                 currentCategory === c
-                  ? "bg-blue-50 text-blue-700 font-medium"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
               }`}
             >
               {c}
@@ -108,11 +108,11 @@ export function FilterSidebar() {
 
       {/* Sort */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Sắp xếp</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Sắp xếp</h3>
         <select
           value={currentSort}
           onChange={(e) => updateParam("sort", e.target.value)}
-          className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label="Sort apps"
         >
           {SORT_OPTIONS.map((opt) => (

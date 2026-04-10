@@ -84,7 +84,7 @@ export default function MenuAppsPage() {
     <div className="max-w-4xl mx-auto px-6 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Apps</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Apps</h1>
         <button
           onClick={() => setView(view === "installed" ? "store" : "installed")}
           className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
@@ -109,11 +109,11 @@ export default function MenuAppsPage() {
       {/* Confirm dialog */}
       {confirmInstall && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-          <div className="bg-white rounded-xl p-6 max-w-sm shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Install {confirmInstall.name}?
             </h3>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
               Install {confirmInstall.name} v{confirmInstall.version}? This will add it to your Apps folder.
             </p>
             <div className="flex gap-3 mt-4">
@@ -125,7 +125,7 @@ export default function MenuAppsPage() {
               </button>
               <button
                 onClick={() => setConfirmInstall(null)}
-                className="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200"
+                className="flex-1 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -156,8 +156,8 @@ export default function MenuAppsPage() {
           {installedApps.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">📦</div>
-              <h3 className="text-lg font-medium text-gray-600">Chưa có app nào</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300">Chưa có app nào</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Nhấn "Browse Store" để tìm và cài đặt app
               </p>
             </div>
@@ -165,7 +165,7 @@ export default function MenuAppsPage() {
             installedApps.map((app) => (
               <div
                 key={app.app_id}
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-5 py-4"
+                className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-5 py-4"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -176,10 +176,10 @@ export default function MenuAppsPage() {
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">{app.name}</span>
-                      <span className="text-xs text-gray-400">v{app.version}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{app.name}</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">v{app.version}</span>
                     </div>
-                    <p className="text-sm text-gray-500">{app.description_short}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{app.description_short}</p>
                     <div className="flex gap-1 mt-1">
                       {app.systems.map((s) => (
                         <SystemBadge key={s} system={s} />
@@ -213,8 +213,8 @@ export default function MenuAppsPage() {
           {storeApps.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">🏪</div>
-              <h3 className="text-lg font-medium text-gray-600">Store trống</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300">Store trống</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Chưa có app nào được phê duyệt trên marketplace
               </p>
             </div>
@@ -222,12 +222,12 @@ export default function MenuAppsPage() {
             storeApps.map((app) => (
               <div
                 key={app.app_id}
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-5 py-4"
+                className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-5 py-4"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900">{app.name}</span>
-                    <span className="text-xs text-gray-400">v{app.version}</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{app.name}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">v{app.version}</span>
                     {app.vendor_name && (
                       <span className="text-xs text-gray-400">by {app.vendor_name}</span>
                     )}

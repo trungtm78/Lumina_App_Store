@@ -13,7 +13,7 @@ function AppIcon({ name, size = 64 }: { name: string; size?: number }) {
   const initial = name.charAt(0).toUpperCase();
   return (
     <div
-      className="bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 font-bold flex-shrink-0"
+      className="bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-300 font-bold flex-shrink-0"
       style={{ width: size, height: size, fontSize: size * 0.4 }}
       aria-hidden="true"
     >
@@ -40,24 +40,24 @@ export function AppCard({ app }: { app: AppItem }) {
   return (
     <Link
       href={`/apps/${app.app_id}`}
-      className="block border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-gray-300 transition-shadow bg-white"
+      className="block border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-shadow bg-white dark:bg-gray-800"
     >
       <div className="flex gap-3">
         <AppIcon name={app.name} />
         <div className="min-w-0 flex-1">
           <h3
-            className="font-semibold text-gray-900 truncate"
+            className="font-semibold text-gray-900 dark:text-white truncate"
             title={app.name}
           >
             {displayName}
           </h3>
           {app.vendor_name && (
-            <p className="text-xs text-gray-500">{app.vendor_name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{app.vendor_name}</p>
           )}
         </div>
       </div>
 
-      <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+      <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
         {app.description_short || "No description"}
       </p>
 
@@ -66,7 +66,7 @@ export function AppCard({ app }: { app: AppItem }) {
         <StatusBadge status={app.status} />
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+      <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
         <StarRating rating={app.rating_avg} />
         <span>{app.download_count.toLocaleString()} downloads</span>
       </div>
