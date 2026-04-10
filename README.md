@@ -8,6 +8,8 @@ Marketplace nội bộ cho addon trong hệ sinh thái Lumina (Core / Plus / Sto
 - **Live Skill Authoring**: Viết skill.md trong browser với Monaco editor, test AI ngay trong chat
 - **Menu Apps**: Quản lý app đã cài, activate/deactivate, 1-click install từ store
 - **App Engine**: Scan thư mục /Apps/, validate config, inject skill.md vào AI prompt
+- **Dark mode**: Hỗ trợ tự động khi hệ thống ở chế độ tối
+- **/LuminaApps/**: Kho lưu trữ ZIP trung tâm cho các app đã approved
 
 ## Kiến trúc
 
@@ -20,25 +22,35 @@ Lumina App Store (repo này)
 └── Infrastructure   → Docker (Postgres 16, Redis 7, MinIO)
 ```
 
-## Cài đặt
+## Quick Start (Windows)
+
+```bash
+# Double-click hoặc chạy trong terminal:
+start_here.bat
+```
+
+Script tự động: cài dependencies, tạo DB + seed 4 app mẫu, chạy tests, start cả backend lẫn frontend.
+
+## Cài đặt thủ công
 
 ### Prerequisites
 
 - Python 3.11+
 - Node.js 20+
 - pnpm
-- Docker & Docker Compose
+- Docker & Docker Compose (tùy chọn, có SQLite fallback)
 
 ### Backend
 
 ```bash
-# Start infrastructure
+# Với Docker
 cd infra && docker compose up -d
+cd apps/store_backend && uvicorn main:app --reload
 
-# Run backend
-cd apps/store_backend
-pip install -e ".[dev]"
-uvicorn main:app --reload
+# Không Docker (SQLite)
+set LUMINA_DATABASE_URL=sqlite+aiosqlite:///./lumina_dev.db
+python init_db.py                                    # Tạo DB + seed data
+python -m uvicorn apps.store_backend.main:app --reload --port 8000
 # → http://localhost:8000
 # → http://localhost:8000/docs (Swagger UI)
 ```
@@ -48,14 +60,14 @@ uvicorn main:app --reload
 ```bash
 cd apps/store-frontend
 pnpm install
-pnpm dev
+NEXT_PUBLIC_API_URL=http://localhost:8000 pnpm dev
 # → http://localhost:3000
 ```
 
 ### Tests
 
 ```bash
-# All backend tests (127 tests)
+# All backend tests (128 tests)
 python -m pytest packages/config-schema/ apps/app_engine/ apps/store_backend/ -v
 
 # Frontend build check

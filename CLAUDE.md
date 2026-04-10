@@ -11,7 +11,10 @@ c:\Lumina\                          ← This repo (marketplace)
 ├── apps/store_backend/             ← FastAPI marketplace API
 ├── apps/store-frontend/            ← Next.js customer portal + authoring IDE
 ├── examples/crm-connector/         ← Sample app
-└── infra/                          ← Docker compose (Postgres, Redis, MinIO)
+├── infra/                          ← Docker compose (Postgres, Redis, MinIO)
+├── LuminaApps/                     ← Central ZIP storage for approved app packages
+├── init_db.py                      ← DB init + sample data seeder
+└── start_here.bat                  ← One-click dev setup (Windows)
 ```
 
 App Engine code lives in Lumina Core repo (separate). This repo has the spec + tests.
@@ -23,16 +26,21 @@ App Engine code lives in Lumina Core repo (separate). This repo has the spec + t
 - **Live Skill Authoring** replaces vendor upload workflow (Monaco editor + chat test)
 - **1-click install** in Menu Apps (download + verify + unzip + activate)
 - **JSON columns** for systems/modules (SQLite test compat, works on Postgres too)
+- **/LuminaApps/** central ZIP storage (cached on deploy, streamed on download)
+- **Dark mode** support (auto via prefers-color-scheme)
 
 ## Running
 
 ```bash
-# Backend
-cd infra && docker compose up -d                    # Postgres + Redis + MinIO
-cd apps/store_backend && uvicorn main:app --reload  # API on :8000
+# Quick start (Windows)
+start_here.bat                                       # Installs deps, seeds DB, starts both servers
 
-# Frontend
-cd apps/store-frontend && pnpm dev                  # Next.js on :3000
+# Manual start
+cd infra && docker compose up -d                     # Postgres + Redis + MinIO (optional, SQLite fallback)
+set LUMINA_DATABASE_URL=sqlite+aiosqlite:///./lumina_dev.db
+python init_db.py                                    # Create tables + seed 4 sample apps
+python -m uvicorn apps.store_backend.main:app --reload --port 8000  # Backend :8000
+cd apps/store-frontend && pnpm dev --port 3000       # Frontend :3000
 
 # Tests
 python -m pytest packages/config-schema/ apps/app_engine/ apps/store_backend/ -v
@@ -42,7 +50,7 @@ python -m pytest packages/config-schema/ apps/app_engine/ apps/store_backend/ -v
 
 - Framework: pytest (backend), Next.js build check (frontend)
 - Run all: `python -m pytest packages/ apps/app_engine/ apps/store_backend/ -v`
-- 127 backend tests, TypeScript build passes with zero errors
+- 128 backend tests, TypeScript build passes with zero errors
 
 ## Deploy Configuration (configured by /setup-deploy)
 - Platform: Vercel (frontend) + Render (backend)
