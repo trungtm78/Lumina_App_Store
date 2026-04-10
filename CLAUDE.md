@@ -43,3 +43,33 @@ python -m pytest packages/config-schema/ apps/app_engine/ apps/store_backend/ -v
 - Framework: pytest (backend), Next.js build check (frontend)
 - Run all: `python -m pytest packages/ apps/app_engine/ apps/store_backend/ -v`
 - 127 backend tests, TypeScript build passes with zero errors
+
+## Deploy Configuration (configured by /setup-deploy)
+- Platform: Vercel (frontend) + Render (backend)
+- Frontend URL: https://lumina-store.vercel.app
+- Backend URL: https://lumina-api.onrender.com
+- Deploy workflow: auto-deploy on push to main (both platforms)
+- Merge method: squash
+- Project type: web app (marketplace)
+
+### Frontend (Vercel)
+- Source: `apps/store-frontend/`
+- Framework: Next.js
+- Build command: `pnpm build`
+- Output: `.next/`
+- Health check: https://lumina-store.vercel.app
+- Deploy trigger: automatic on push to main
+
+### Backend (Render)
+- Source: `apps/store_backend/`
+- Runtime: Python 3.11
+- Start command: `uvicorn apps.store_backend.main:app --host 0.0.0.0 --port $PORT`
+- Health check: https://lumina-api.onrender.com/health
+- Deploy trigger: automatic on push to main
+- Environment variables needed: LUMINA_DATABASE_URL, LUMINA_REDIS_URL, LUMINA_MINIO_ENDPOINT, LUMINA_JWT_SECRET
+
+### Custom deploy hooks
+- Pre-merge: `python -m pytest packages/config-schema/ apps/app_engine/ apps/store_backend/ -v`
+- Deploy trigger: automatic on push to main
+- Deploy status: poll production URLs
+- Health check: GET https://lumina-api.onrender.com/health (expect `{"status":"ok"}`)
