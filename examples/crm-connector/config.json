@@ -1,0 +1,33 @@
+{
+  "app_id": "lumina-crm-connector",
+  "name": "CRM Connector",
+  "version": "1.0.0",
+  "description": "Kết nối và đồng bộ dữ liệu giữa Lumina và các CRM phổ biến (Salesforce, HubSpot, Zoho). Cho phép AI truy vấn thông tin khách hàng, tạo deal, cập nhật pipeline trực tiếp trong chat.",
+  "description_short": "Đồng bộ CRM – Truy vấn và quản lý khách hàng trong Lumina Chat",
+  "category": "Integration",
+  "company": {
+    "name": "Lumina Technology JSC",
+    "website": "https://lumina.io",
+    "support_email": "support@lumina.io",
+    "license": "MIT"
+  },
+  "creator": {
+    "name": "Nguyen Van A",
+    "email": "nguyenvana@dev.io",
+    "github": "https://github.com/nguyenvana"
+  },
+  "ai_model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514",
+    "fallback": "claude-haiku-4-5-20251001"
+  },
+  "target": {
+    "systems": ["core", "plus"],
+    "modules": ["chat", "dashboard"],
+    "min_version": "2.0.0"
+  },
+  "dependencies": [],
+  "permissions": ["read:users", "write:chat", "external:api"],
+  "auto_activate": false,
+  "is_active": false
+}

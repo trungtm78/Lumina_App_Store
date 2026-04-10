@@ -1,0 +1,128 @@
+"""Tests for /api/apps endpoints."""
+
+import pytest
+from httpx import AsyncClient
+
+from apps.store_backend.models.app import App
+
+
+class TestListApps:
+    @pytest.mark.asyncio
+    async def test_list_empty(self, client: AsyncClient):
+        resp = await client.get("/api/apps")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["items"] == []
+        assert data["total"] == 0
+        assert data["page"] == 1
+
+    @pytest.mark.asyncio
+    async def test_list_with_app(self, client: AsyncClient, sample_app: App):
+        resp = await client.get("/api/apps")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] == 1
+        assert data["items"][0]["app_id"] == "test-crm-connector"
+        assert data["items"][0]["name"] == "CRM Connector"
+        assert data["items"][0]["download_count"] == 42
+
+    @pytest.mark.asyncio
+    async def test_list_filter_by_category(self, client: AsyncClient, sample_app, draft_app):
+        resp = await client.get("/api/apps?category=Integration")
+        data = resp.json()
+        assert data["total"] == 1
+        assert data["items"][0]["category"] == "Integration"
+
+    @pytest.mark.asyncio
+    async def test_list_filter_by_status(self, client: AsyncClient, sample_app, draft_app):
+        resp = await client.get("/api/apps?status=approved")
+        data = resp.json()
+        assert data["total"] == 1
+        assert data["items"][0]["status"] == "approved"
+
+    @pytest.mark.asyncio
+    async def test_list_search(self, client: AsyncClient, sample_app):
+        resp = await client.get("/api/apps?search=CRM")
+        data = resp.json()
+        assert data["total"] == 1
+
+    @pytest.mark.asyncio
+    async def test_list_search_no_results(self, client: AsyncClient, sample_app):
+        resp = await client.get("/api/apps?search=nonexistent")
+        data = resp.json()
+        assert data["total"] == 0
+
+    @pytest.mark.asyncio
+    async def test_list_pagination(self, client: AsyncClient, sample_app, draft_app):
+        resp = await client.get("/api/apps?page=1&page_size=1")
+        data = resp.json()
+        assert data["total"] == 2
+        assert len(data["items"]) == 1
+        assert data["pages"] == 2
+
+    @pytest.mark.asyncio
+    async def test_list_sort_name(self, client: AsyncClient, sample_app, draft_app):
+        resp = await client.get("/api/apps?sort=name")
+        data = resp.json()
+        names = [item["name"] for item in data["items"]]
+        assert names == sorted(names)
+
+
+class TestGetApp:
+    @pytest.mark.asyncio
+    async def test_get_by_slug(self, client: AsyncClient, sample_app: App):
+        resp = await client.get("/api/apps/test-crm-connector")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["app_id"] == "test-crm-connector"
+        assert data["name"] == "CRM Connector"
+
+    @pytest.mark.asyncio
+    async def test_get_by_uuid(self, client: AsyncClient, sample_app: App):
+        resp = await client.get(f"/api/apps/{sample_app.id}")
+        assert resp.status_code == 200
+        assert resp.json()["app_id"] == "test-crm-connector"
+
+    @pytest.mark.asyncio
+    async def test_get_404(self, client: AsyncClient):
+        resp = await client.get("/api/apps/nonexistent-app")
+        assert resp.status_code == 404
+        assert resp.json()["detail"]["code"] == "APP_NOT_FOUND"
+
+
+class TestDownloadApp:
+    @pytest.mark.asyncio
+    async def test_download_approved(self, client: AsyncClient, sample_app):
+        resp = await client.get("/api/apps/test-crm-connector/download")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["app_id"] == "test-crm-connector"
+
+    @pytest.mark.asyncio
+    async def test_download_not_approved(self, client: AsyncClient, draft_app):
+        resp = await client.get("/api/apps/draft-app/download")
+        assert resp.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_download_404(self, client: AsyncClient):
+        resp = await client.get("/api/apps/nonexistent/download")
+        assert resp.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_download_increments_count(self, client: AsyncClient, sample_app):
+        await client.get("/api/apps/test-crm-connector/download")
+        resp = await client.get("/api/apps/test-crm-connector")
+        assert resp.json()["download_count"] == 43
+
+
+class TestChecksum:
+    @pytest.mark.asyncio
+    async def test_checksum(self, client: AsyncClient, sample_app):
+        resp = await client.get("/api/apps/test-crm-connector/checksum")
+        assert resp.status_code == 200
+        assert "sha256" in resp.json()
+
+    @pytest.mark.asyncio
+    async def test_checksum_404(self, client: AsyncClient):
+        resp = await client.get("/api/apps/nonexistent/checksum")
+        assert resp.status_code == 404

@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+
+# Build artifacts
+*.whl
+*.tar.gz
+
+# Test
+.coverage
+htmlcov/
+.pytest_cache/
+coverage/
+
+# MinIO data (local dev)
+minio-data/
+
+# Runtime Apps folder (created by App Engine at runtime, not source code)
+# Note: using explicit path to avoid matching /apps/ source directory on case-insensitive OS
+/Apps/.drafts/
+/Apps/.versions/

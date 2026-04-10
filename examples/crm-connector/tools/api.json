@@ -1,0 +1,32 @@
+{
+  "endpoints": [
+    {
+      "id": "get_crm_contacts",
+      "method": "GET",
+      "url": "https://api.crm-example.com/v2/contacts",
+      "auth": { "type": "bearer", "token_env": "CRM_API_TOKEN" },
+      "headers": { "Content-Type": "application/json" },
+      "params": { "limit": 100, "status": "active" }
+    },
+    {
+      "id": "get_crm_deals",
+      "method": "GET",
+      "url": "https://api.crm-example.com/v2/deals",
+      "auth": { "type": "bearer", "token_env": "CRM_API_TOKEN" },
+      "headers": { "Content-Type": "application/json" }
+    },
+    {
+      "id": "create_crm_deal",
+      "method": "POST",
+      "url": "https://api.crm-example.com/v2/deals",
+      "auth": { "type": "bearer", "token_env": "CRM_API_TOKEN" },
+      "body_schema": "schemas/deal.json"
+    },
+    {
+      "id": "update_crm_deal",
+      "method": "PUT",
+      "url": "https://api.crm-example.com/v2/deals/{deal_id}",
+      "auth": { "type": "bearer", "token_env": "CRM_API_TOKEN" }
+    }
+  ]
+}
