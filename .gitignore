@@ -51,3 +51,7 @@ minio-data/
 # Note: using explicit path to avoid matching /apps/ source directory on case-insensitive OS
 /Apps/.drafts/
 /Apps/.versions/
+.gstack/
+
+# ZIP package storage (generated, not source code)
+/LuminaApps/

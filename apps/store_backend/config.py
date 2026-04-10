@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24h
 
+    # Storage
+    lumina_apps_dir: str = "./LuminaApps"  # Central ZIP storage for approved apps
+
     # Limits
     max_zip_size: int = 50 * 1024 * 1024  # 50MB
     max_py_file_size: int = 5 * 1024 * 1024  # 5MB

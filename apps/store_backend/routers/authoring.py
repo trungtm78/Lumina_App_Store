@@ -204,6 +204,28 @@ async def deploy_app(app_id: str):
         shutil.rmtree(live_dir)
     shutil.copytree(draft_dir, live_dir)
 
+    # Generate and save ZIP to /LuminaApps/
+    import zipfile
+    import io
+    lumina_apps_dir = Path(os.environ.get("LUMINA_LUMINA_APPS_DIR", "./LuminaApps"))
+    lumina_apps_dir.mkdir(parents=True, exist_ok=True)
+
+    zip_filename = f"{app_id}-v{version}.zip"
+    zip_path = lumina_apps_dir / zip_filename
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for file_path in sorted(live_dir.rglob("*")):
+            if file_path.is_file():
+                arcname = f"{app_id}/{file_path.relative_to(live_dir)}"
+                zf.write(file_path, arcname)
+        zf.writestr(f"{app_id}/INSTALL.md", f"# Installation\n\n1. Unzip this file\n2. Copy `{app_id}/` folder to `/Apps/`\n3. Go to Menu Apps and activate\n")
+        zf.writestr(f"{app_id}/CHANGELOG.md", f"# Changelog\n\n## [{version}] - {datetime.now(timezone.utc).strftime('%Y-%m-%d')}\n- Deployed via Live Authoring\n")
+
+    # Copy as latest
+    latest_path = lumina_apps_dir / f"{app_id}-latest.zip"
+    shutil.copy2(zip_path, latest_path)
+
+    logger.info("ZIP saved: %s (%d bytes)", zip_path, zip_path.stat().st_size)
+
     deployed_at = datetime.now(timezone.utc).isoformat()
     logger.info("Deployed app %s v%s at %s", app_id, version, deployed_at)
 

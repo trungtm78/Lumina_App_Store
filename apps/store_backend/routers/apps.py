@@ -149,18 +149,36 @@ async def download_app(app_id: str, db: AsyncSession = Depends(get_db)):
     app.download_count += 1
     await db.commit()
 
-    # Find app source folder: check examples/ and Apps/
+    from ..config import settings
+    lumina_apps_dir = Path(settings.lumina_apps_dir)
+    filename = f"{app_id}-v{app.version}.zip"
+
+    # 1. Check /LuminaApps/ for pre-built ZIP (fastest path)
+    cached_zip = lumina_apps_dir / filename
+    if cached_zip.is_file():
+        zip_bytes = cached_zip.read_bytes()
+        checksum = hashlib.sha256(zip_bytes).hexdigest()
+        return StreamingResponse(
+            io.BytesIO(zip_bytes),
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Length": str(len(zip_bytes)),
+                "X-Checksum-SHA256": checksum,
+                "X-Source": "cached",
+            },
+        )
+
+    # 2. Fallback: generate on-the-fly from source folder
     app_dir = None
     for base in [
         Path(__file__).parent.parent.parent.parent / "examples",
         Path(__file__).parent.parent.parent.parent / "Apps",
     ]:
-        # Match by app_id or folder name
         candidate = base / app_id
         if candidate.is_dir():
             app_dir = candidate
             break
-        # Try matching without "lumina-" prefix
         short_id = app_id.replace("lumina-", "")
         candidate = base / short_id
         if candidate.is_dir():
@@ -180,20 +198,17 @@ async def download_app(app_id: str, db: AsyncSession = Depends(get_db)):
             if file_path.is_file():
                 arcname = f"{app_id}/{file_path.relative_to(app_dir)}"
                 zf.write(file_path, arcname)
-
-        # Add INSTALL.md
         zf.writestr(f"{app_id}/INSTALL.md", f"# Installation\n\n1. Unzip this file\n2. Copy `{app_id}/` folder to `/Apps/`\n3. Go to Menu Apps and activate\n")
-
-        # Add CHANGELOG.md
         zf.writestr(f"{app_id}/CHANGELOG.md", f"# Changelog\n\n## [{app.version}] - {datetime.now().strftime('%Y-%m-%d')}\n- Initial release\n")
 
     zip_buffer.seek(0)
     zip_bytes = zip_buffer.getvalue()
 
-    # Compute checksum
-    checksum = hashlib.sha256(zip_bytes).hexdigest()
+    # Cache the generated ZIP for next time
+    lumina_apps_dir.mkdir(parents=True, exist_ok=True)
+    cached_zip.write_bytes(zip_bytes)
 
-    filename = f"{app_id}-v{app.version}.zip"
+    checksum = hashlib.sha256(zip_bytes).hexdigest()
     return StreamingResponse(
         io.BytesIO(zip_bytes),
         media_type="application/zip",

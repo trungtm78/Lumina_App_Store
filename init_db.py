@@ -121,6 +121,26 @@ async def init():
         await session.commit()
         print(f"[DB] Seeded {len(apps)} apps + 1 vendor")
 
+    # Generate ZIPs in /LuminaApps/ for sample apps
+    import zipfile
+    lumina_apps_dir = Path("./LuminaApps")
+    lumina_apps_dir.mkdir(parents=True, exist_ok=True)
+
+    examples_dir = Path("examples/crm-connector")
+    if examples_dir.exists():
+        zip_path = lumina_apps_dir / "lumina-crm-connector-v1.0.0.zip"
+        if not zip_path.exists():
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                for fp in sorted(examples_dir.rglob("*")):
+                    if fp.is_file():
+                        zf.write(fp, f"lumina-crm-connector/{fp.relative_to(examples_dir)}")
+                zf.writestr("lumina-crm-connector/INSTALL.md", "# Installation\n\n1. Unzip\n2. Copy to /Apps/\n3. Activate\n")
+            import shutil
+            shutil.copy2(zip_path, lumina_apps_dir / "lumina-crm-connector-latest.zip")
+            print(f"[ZIP] Created {zip_path} ({zip_path.stat().st_size} bytes)")
+        else:
+            print(f"[ZIP] Already exists: {zip_path}")
+
     await engine.dispose()
 
 
